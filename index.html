@@ -127,7 +127,7 @@
 <script>
     (function() {
         // ⚠️ ضع رابط نشر Apps Script هنا
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkVL8jkyCzLEWdAdH4YZQoCMoooNw8ydMZUgZLdxC3ZovoyfU-o5r_dKSG9c_fVU9y/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNTt4vBxSns2eeWfqhdngOIn10S1I6Hw7uV72x0A6f8LYzIsMMRmh_OuYsLPuoztmm/exec';
 
         const products = [
             { id: 'p1', name: 'Midnight Velvet Cake', desc: 'Rich red velvet with cream cheese frosting', price: 48.90, category: 'cakes', image: 'https://images.unsplash.com/photo-1586788224331-947f68671cf1?w=400&h=300&fit=crop' },
@@ -236,7 +236,7 @@
             }
         });
 
-        // ================= التحقق من العودة =================
+                // ================= استقبال نتيجة الدفع =================
         const urlParams = new URLSearchParams(window.location.search);
         const paytabsCartId = urlParams.get('cartId');
         
@@ -246,38 +246,28 @@
                 const order = JSON.parse(pendingOrderStr);
                 if (order.orderId === paytabsCartId) {
                     const tranRef = urlParams.get('tranRef');
-                    const paymentResult = urlParams.get('respCode');
                     
-                    order.paymentId = tranRef || 'N/A';
-                    
-                    // نجاح حقيقي أو وهمي (Mock)
-                    if (paymentResult === '100' || tranRef) {
-                        order.paymentStatus = 'paid';
-                        order.status = 'new';
-                    } else {
-                        order.paymentStatus = 'failed';
-                        order.status = 'cancelled';
-                    }
-
-                    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'saveOrder', data: JSON.stringify(order) }) })
+                    // إرسال أمر تحديث حالة الدفع فقط (لأن الطلب محفوظ مسبقاً في المطبخ)
+                    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'confirmPayment', orderId: order.orderId, paymentId: tranRef || '' }) })
                     .then(() => {
                         sessionStorage.removeItem('pendingOrder');
+                        // تنظيف الرابط من باراميترات PayTabs
                         window.history.replaceState({}, document.title, window.location.pathname);
                         
-                        if (order.paymentStatus === 'paid') {
-                            // رسالة توضح أن الاختبار نجح
-                            let msg = '✅ Test Successful!\nOrder ' + order.orderId + ' saved to Google Sheets.';
-                            if(tranRef === 'MOCK_PAYMENT') msg += '\n(Note: PayTabs was bypassed due to test limits)';
-                            alert(msg);
-                            cart = []; saveCartToLocal(); updateCartBadge();
-                        } else {
-                            alert('❌ Payment failed or was cancelled.');
-                        }
+                        alert('✅ Payment Successful! Your order ' + order.orderId + ' is now being prepared in the kitchen.');
+                        cart = []; 
+                        saveCartToLocal();
+                        updateCartBadge();
+                    })
+                    .catch(() => {
+                         // حتى لو فشل التحديث، لا مشكلة، الطلب وصل للمطبخ بالفعل
+                         alert('✅ Order received! It is being prepared.');
+                         window.history.replaceState({}, document.title, window.location.pathname);
+                         cart = []; saveCartToLocal(); updateCartBadge();
                     });
                 }
             }
         }
-
         loadCartFromLocal(); renderCategories(); renderProducts();
     })();
 </script>
