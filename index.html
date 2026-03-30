@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mekasa | Artisan Patisserie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #fefaf5; color: #2e241d; overflow-x: hidden; scroll-behavior: smooth; position: relative; }
+        .gold-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .gold-particle { position: absolute; top: -10px; width: 3px; height: 3px; background: radial-gradient(circle, rgba(212,175,55,0.8), rgba(212,175,55,0.2)); border-radius: 50%; box-shadow: 0 0 4px rgba(212,175,55,0.6); animation: fall linear infinite; opacity: 0.5; }
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.6; } 100% { transform: translateY(110vh) rotate(360deg); opacity: 0; } }
+        #intro-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1s cubic-bezier(0.23, 1, 0.32, 1); }
+        .intro-logo-wrapper { text-align: center; margin-bottom: 2rem; }
+        .logo-circle { width: 150px; height: 150px; margin: 0 auto; background: linear-gradient(135deg, #f9e7d2, #f5d5b3); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 0 0 10px rgba(139,90,43,0.2), 0 0 0 2px #8B5A2B inset; animation: spinLogo 2s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards; overflow: hidden; }
+        .logo-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        @keyframes spinLogo { 0% { transform: rotate(0deg) scale(0.95); } 100% { transform: rotate(360deg) scale(1); } }
+        .logo-text { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #8B5A2B, #c47b2e); background-clip: text; -webkit-background-clip: text; color: transparent; margin-top: 16px; }
+        .loading-bar-container { width: 240px; height: 3px; background: #f0e3d4; border-radius: 10px; margin-top: 28px; overflow: hidden; }
+        .loading-progress { width: 0%; height: 100%; background: linear-gradient(90deg, #8B5A2B, #c47b2e); border-radius: 10px; }
+        .burst-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10001; overflow: hidden; }
+        .burst-emoji { position: absolute; font-size: 2rem; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15)); animation: flyBurst 0.9s ease-out forwards; }
+        @keyframes flyBurst { 0% { transform: translate(0, 0) scale(0.2); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1.2); opacity: 0; } }
+        #main-site { opacity: 0; transition: opacity 1.2s ease; position: relative; z-index: 2; }
+        .hero-section { position: relative; height: 70vh; min-height: 480px; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+        .hero-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5) saturate(1.1); }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); }
+        .hero-content { position: relative; z-index: 2; color: white; max-width: 800px; padding: 0 20px; }
+        .hero-content h1 { font-family: 'Playfair Display', serif; font-size: 3.8rem; font-weight: 700; margin-bottom: 0.5rem; text-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .hero-content p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 1.8rem; }
+        .navbar { background: rgba(255,255,248,0.96); backdrop-filter: blur(14px); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 2rem; border-bottom: 1px solid rgba(139,90,43,0.25); }
+        .logo-nav { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; background: linear-gradient(135deg, #8B5A2B, #c47b2e); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .cart-icon { position: relative; cursor: pointer; font-size: 1.6rem; color: #4a2e1a; transition: transform 0.2s; }
+        .cart-icon:hover { transform: scale(1.05); }
+        .cart-badge { position: absolute; top: -8px; right: -12px; background: #8B5A2B; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .category-tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 1.8rem 1.5rem 1rem; }
+        .cat-btn { background: transparent; border: 1px solid #e2cfb5; padding: 0.5rem 1.4rem; border-radius: 50px; font-weight: 500; font-size: 0.85rem; color: #5c432a; cursor: pointer; transition: all 0.25s; }
+        .cat-btn.active, .cat-btn:hover { background: #8B5A2B; border-color: #8B5A2B; color: white; box-shadow: 0 4px 10px rgba(139,90,43,0.3); }
+        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.8rem; padding: 1.2rem 2rem 3rem; max-width: 1300px; margin: 0 auto; }
+        .product-card { background: #ffffff; border-radius: 28px; overflow: hidden; transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.3s; box-shadow: 0 12px 28px -10px rgba(0,0,0,0.05); border: 1px solid rgba(212,175,55,0.5); position: relative; width: 100%; }
+        .product-card::after { content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; background: linear-gradient(135deg, rgba(212,175,55,0.6), rgba(212,175,55,0.2), rgba(212,175,55,0.6)); border-radius: 30px; z-index: -1; opacity: 0; transition: opacity 0.4s ease; }
+        .product-card:hover::after { opacity: 1; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 24px 36px -12px rgba(0,0,0,0.12), 0 0 0 2px rgba(212,175,55,0.3); border-color: #d4af37; }
+        .product-img { width: 100%; height: 210px; object-fit: cover; transition: transform 0.5s; }
+        .product-card:hover .product-img { transform: scale(1.02); }
+        .product-info { padding: 1.2rem 1.3rem 1.4rem; }
+        .product-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 600; margin-bottom: 0.3rem; color: #2e241d; }
+        .product-desc { font-size: 0.8rem; color: #7c6b5a; margin-bottom: 0.6rem; line-height: 1.4; }
+        .product-price { font-weight: 700; font-size: 1.2rem; color: #8B5A2B; margin-bottom: 0.8rem; }
+        .add-to-cart { width: 100%; background: #fef6ef; border: 1px solid #e7cfb5; border-radius: 40px; padding: 0.65rem; font-weight: 600; font-size: 0.85rem; color: #8B5A2B; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .add-to-cart:hover { background: #8B5A2B; border-color: #8B5A2B; color: white; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .cart-modal { background: #fffef8; border-radius: 42px; width: 90%; max-width: 520px; max-height: 85vh; overflow-y: auto; padding: 1.6rem; box-shadow: 0 30px 60px rgba(0,0,0,0.2); border: 1px solid #eedfcb; }
+        .cart-modal h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; margin-bottom: 1rem; color: #2e241d; border-bottom: 2px solid #e9cfb2; display: inline-block; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid #f1e1d0; }
+        .cart-item-info p { font-weight: 600; margin-bottom: 0.2rem; }
+        .cart-item-price { color: #8B5A2B; font-weight: 600; }
+        .cart-qty-control { display: flex; gap: 8px; align-items: center; }
+        .cart-qty-btn { background: #f2e5d9; border: none; width: 28px; height: 28px; border-radius: 30px; cursor: pointer; font-weight: bold; }
+        .cart-total { font-size: 1.3rem; font-weight: 800; margin: 1rem 0; text-align: right; color: #8B5A2B; }
+        .checkout-btn { background: #8B5A2B; color: white; border: none; border-radius: 50px; padding: 12px; width: 100%; font-weight: 700; margin-top: 0.5rem; cursor: pointer; }
+        .checkout-btn:hover { background: #6f451f; transform: scale(0.98); }
+        .close-modal { float: left; font-size: 1.4rem; cursor: pointer; color: #8b6948; }
+        .checkout-form { margin-top: 1.2rem; }
+        .form-group { margin-bottom: 0.9rem; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px 14px; border-radius: 28px; border: 1px solid #e2cfb5; font-family: 'Inter', sans-serif; background: white; }
+        .submit-order { background: #8B5A2B; color: white; border: none; border-radius: 60px; padding: 12px; font-weight: bold; width: 100%; margin-top: 8px; cursor: pointer; }
+        .footer { background: #faf6f0; text-align: center; padding: 1.5rem; margin-top: 2rem; font-size: 0.8rem; border-top: 1px solid #eedfcb; }
+        @media (max-width: 700px) { .hero-content h1 { font-size: 2.2rem; } .navbar { padding: 0.6rem 1.2rem; } .hero-section { height: 60vh; } .products-grid { gap: 1rem; padding: 0.8rem 1rem 2rem; } .product-img { height: 140px; } .product-info { padding: 0.8rem; } .product-title { font-size: 1rem; white-space: normal; word-break: break-word; } .product-desc { font-size: 0.7rem; line-height: 1.3; } .product-price { font-size: 1rem; margin-bottom: 0.5rem; } .add-to-cart { padding: 0.5rem; font-size: 0.7rem; } .category-tabs { margin: 1rem 0.8rem; gap: 6px; } .cat-btn { padding: 0.4rem 1rem; font-size: 0.75rem; } }
+        @media (max-width: 480px) { .product-img { height: 120px; } .product-title { font-size: 0.9rem; } .product-price { font-size: 0.9rem; } .add-to-cart { font-size: 0.65rem; padding: 0.45rem; } }
+    </style>
+</head>
+<body>
+
+<div class="gold-particles" id="goldParticles"></div>
+<div id="intro-screen">
+    <div class="intro-logo-wrapper">
+        <div class="logo-circle"><img src="https://iili.io/qiHfvxj.jpg" alt="Mekasa Logo"></div>
+        <div class="logo-text">MEKASA</div>
+        <div class="loading-bar-container"><div class="loading-progress" id="loadingProgress"></div></div>
+    </div>
+</div>
+<div id="burstContainer" class="burst-container" style="display: none;"></div>
+
+<main id="main-site" style="opacity:0;">
+    <div class="hero-section">
+        <video class="hero-video" autoplay muted loop playsinline><source src="https://cdn.pixabay.com/video/2023/08/15/176762-855225538_large.mp4" type="video/mp4"></video>
+        <div class="hero-overlay"></div>
+        <div class="hero-content"><h1>Artisan Patisserie</h1><p>Handcrafted cakes & confections with pure elegance</p></div>
+    </div>
+    <div class="navbar"><div class="logo-nav">Mekasa</div><div class="cart-icon" id="cartIcon"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartBadge">0</span></div></div>
+    <div class="category-tabs" id="categoryContainer"></div>
+    <div class="products-grid" id="productsGrid"></div>
+    <footer class="footer"><p>© 2025 Mekasa — where every bite tells a story of craftsmanship</p></footer>
+</main>
+
+<div id="cartModal" class="modal-overlay">
+    <div class="cart-modal">
+        <span class="close-modal" id="closeCartModal">&times;</span>
+        <h2>Your Selection</h2>
+        <div id="cartItemsList"></div>
+        <div class="cart-total" id="cartTotalPrice">Total: 0.00 USD</div>
+        <button class="checkout-btn" id="proceedCheckoutBtn">Proceed to Checkout</button>
+    </div>
+</div>
+
+<div id="checkoutModal" class="modal-overlay">
+    <div class="cart-modal">
+        <span class="close-modal" id="closeCheckoutModal">&times;</span>
+        <h2>Complete Order</h2>
+        <form id="orderForm" class="checkout-form">
+            <div class="form-group"><input type="text" id="customerName" placeholder="Full name" required></div>
+            <div class="form-group"><input type="tel" id="customerPhone" placeholder="Phone number" required></div>
+            <div class="form-group"><input type="email" id="customerEmail" placeholder="Email address" required></div>
+            <div class="form-group"><input type="text" id="customerAddress" placeholder="Delivery address" required></div>
+            <div class="form-group"><textarea rows="2" id="orderNotes" placeholder="Special notes (optional)"></textarea></div>
+            <button type="submit" class="submit-order">Place Order</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ⚠️ ضع رابط نشر Apps Script هنا
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwls80bOHiNOYQTmvugAZNdIYn-znynJjQZbqyu37_BuRJUeqd2l-n0IZC7Akr_OJx0/exec';
+
+        const products = [
+            { id: 'p1', name: 'Midnight Velvet Cake', desc: 'Rich red velvet with cream cheese frosting', price: 48.90, category: 'cakes', image: 'https://images.unsplash.com/photo-1586788224331-947f68671cf1?w=400&h=300&fit=crop' },
+            { id: 'p2', name: 'Golden Honey Almond', desc: 'Moist almond cake infused with wild honey', price: 42.50, category: 'cakes', image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop' },
+            { id: 'p3', name: 'Sakura Cheesecake', desc: 'Japanese-style, light & airy with cherry blossom', price: 39.00, category: 'cakes', image: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&h=300&fit=crop' },
+            { id: 'p4', name: 'Macaron Gift Box', desc: '12 pieces assorted premium french macarons', price: 29.90, category: 'macarons', image: 'https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=400&h=300&fit=crop' },
+            { id: 'p5', name: 'Cupcake Trio', desc: 'Vanilla, salted caramel & dark chocolate', price: 18.50, category: 'cupcakes', image: 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=400&h=300&fit=crop' },
+            { id: 'p6', name: 'Salted Caramel Éclair', desc: 'Hand-glazed with gold leaf', price: 12.90, category: 'pastries', image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=400&h=300&fit=crop' },
+            { id: 'p7', name: 'Chocolate Truffle Cake', desc: 'Intense dark chocolate ganache', price: 54.00, category: 'cakes', image: 'https://images.unsplash.com/photo-1606890737304-57c2b0cddfc9?w=400&h=300&fit=crop' },
+            { id: 'p8', name: 'Pistachio Croissant', desc: 'Flaky layers with pistachio cream', price: 8.90, category: 'pastries', image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&h=300&fit=crop' },
+            { id: 'p9', name: 'Rose Lychee Cake', desc: 'Elegant floral notes with fresh lychee', price: 46.00, category: 'cakes', image: 'https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=400&h=300&fit=crop' }
+        ];
+        
+        const categories = ['all', ...new Set(products.map(p => p.category))];
+        let activeCategory = 'all';
+        let cart = [];
+
+        const mainSite = document.getElementById('main-site');
+        const introScreen = document.getElementById('intro-screen');
+        const progressBar = document.getElementById('loadingProgress');
+        const burstContainer = document.getElementById('burstContainer');
+        const categoryContainer = document.getElementById('categoryContainer');
+        const productsGrid = document.getElementById('productsGrid');
+        const cartIcon = document.getElementById('cartIcon');
+        const cartModal = document.getElementById('cartModal');
+        const closeCart = document.getElementById('closeCartModal');
+        const cartItemsList = document.getElementById('cartItemsList');
+        const cartTotalPriceSpan = document.getElementById('cartTotalPrice');
+        const cartBadge = document.getElementById('cartBadge');
+        const proceedCheckoutBtn = document.getElementById('proceedCheckoutBtn');
+        const checkoutModal = document.getElementById('checkoutModal');
+        const closeCheckoutModal = document.getElementById('closeCheckoutModal');
+        const orderForm = document.getElementById('orderForm');
+
+        function updateCartBadge() { cartBadge.textContent = cart.reduce((sum, item) => sum + item.quantity, 0); }
+        function saveCartToLocal() { localStorage.setItem('mekasa_cart', JSON.stringify(cart)); }
+        function loadCartFromLocal() { const saved = localStorage.getItem('mekasa_cart'); if (saved) { try { cart = JSON.parse(saved); updateCartBadge(); } catch(e) {} } }
+
+        function addToCart(productId, qty = 1) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const existing = cart.find(i => i.id === productId);
+            if (existing) { existing.quantity += qty; } else { cart.push({ ...product, quantity: qty }); }
+            saveCartToLocal(); updateCartBadge();
+        }
+
+        function renderCartModal() {
+            cartItemsList.innerHTML = '';
+            if (cart.length === 0) { cartItemsList.innerHTML = '<p style="text-align:center;color:#999;padding:20px 0;">Your cart is empty</p>'; cartTotalPriceSpan.textContent = 'Total: 0.00 USD'; return; }
+            let total = 0;
+            cart.forEach(item => { total += item.price * item.quantity; cartItemsList.innerHTML += `<div class="cart-item"><div class="cart-item-info"><p>${item.name}</p><span class="cart-item-price">${item.price} USD</span></div><div class="cart-qty-control"><button class="cart-qty-btn" onclick="window.updateCartQty('${item.id}', -1)">-</button><span>${item.quantity}</span><button class="cart-qty-btn" onclick="window.updateCartQty('${item.id}', 1)">+</button></div></div>`; });
+            cartTotalPriceSpan.textContent = `Total: ${total.toFixed(2)} USD`;
+        }
+
+        window.updateCartQty = function(id, change) { const item = cart.find(i => i.id === id); if (item) { item.quantity += change; if (item.quantity <= 0) cart = cart.filter(i => i.id !== id); saveCartToLocal(); updateCartBadge(); renderCartModal(); } };
+        function renderCategories() { categoryContainer.innerHTML = ''; categories.forEach(cat => { const btn = document.createElement('button'); btn.className = `cat-btn ${activeCategory === cat ? 'active' : ''}`; btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1); btn.onclick = () => { activeCategory = cat; renderCategories(); renderProducts(); }; categoryContainer.appendChild(btn); }); }
+        function renderProducts() { productsGrid.innerHTML = ''; const filtered = activeCategory === 'all' ? products : products.filter(p => p.category === activeCategory); filtered.forEach(p => { productsGrid.innerHTML += `<div class="product-card"><img src="${p.image}" alt="${p.name}" class="product-img"><div class="product-info"><div class="product-title">${p.name}</div><div class="product-desc">${p.desc}</div><div class="product-price">${p.price} USD</div><button class="add-to-cart" onclick="window.addToCartDirect('${p.id}')"><i class="fas fa-plus"></i> Add to Cart</button></div></div>`; }); }
+        window.addToCartDirect = function(id) { addToCart(id, 1); };
+
+        let startTime = performance.now(); const duration = 2600;
+        function updateProgress(now) { let percent = Math.min(100, ((now - startTime) / duration) * 100); progressBar.style.width = percent + '%'; if (percent < 100) requestAnimationFrame(updateProgress); else finishIntro(); }
+        function finishIntro() { burstContainer.style.display = 'block'; const emojis = ['🍰', '🎂', '🍫', '🧁', '🍪', '🍬', '🍭', '🍮', '🥮']; for (let i = 0; i < 60; i++) { const emoji = document.createElement('div'); emoji.className = 'burst-emoji'; emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)]; const angle = Math.random() * 2 * Math.PI; const distance = 140 + Math.random() * 180; emoji.style.setProperty('--dx', (Math.cos(angle) * distance) + 'px'); emoji.style.setProperty('--dy', (Math.sin(angle) * distance - 70) + 'px'); emoji.style.left = '50%'; emoji.style.top = '50%'; emoji.style.fontSize = (1.4 + Math.random() * 1.8) + 'rem'; burstContainer.appendChild(emoji); setTimeout(() => emoji.remove(), 850); } setTimeout(() => { introScreen.style.opacity = '0'; setTimeout(() => { introScreen.style.display = 'none'; mainSite.style.opacity = '1'; burstContainer.style.display = 'none'; }, 700); }, 550); }
+        requestAnimationFrame(updateProgress);
+
+        function createGoldParticles() { const container = document.getElementById('goldParticles'); for (let i = 0; i < 90; i++) { const p = document.createElement('div'); p.className = 'gold-particle'; p.style.width = (1.5 + Math.random() * 2.5) + 'px'; p.style.height = p.style.width; p.style.left = Math.random() * 100 + '%'; p.style.animationDuration = (8 + Math.random() * 14) + 's'; p.style.animationDelay = Math.random() * -20 + 's'; p.style.opacity = 0.3 + Math.random() * 0.5; container.appendChild(p); } }
+        createGoldParticles();
+
+        cartIcon.addEventListener('click', () => { renderCartModal(); cartModal.classList.add('active'); });
+        closeCart.addEventListener('click', () => cartModal.classList.remove('active'));
+        proceedCheckoutBtn.addEventListener('click', () => { if (cart.length === 0) { alert('Your cart is empty.'); return; } cartModal.classList.remove('active'); checkoutModal.classList.add('active'); });
+        closeCheckoutModal.addEventListener('click', () => checkoutModal.classList.remove('active'));
+        window.addEventListener('click', (e) => { if (e.target === cartModal) cartModal.classList.remove('active'); if (e.target === checkoutModal) checkoutModal.classList.remove('active'); });
+
+        // ================= إرسال الطلب =================
+        orderForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const email = document.getElementById('customerEmail').value.trim();
+            const address = document.getElementById('customerAddress').value.trim();
+            if (!name || !phone || !email || !address) { alert('Please fill all required fields.'); return; }
+            
+            const totalAmount = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0).toFixed(2);
+            const orderId = 'MEK-' + Date.now();
+
+            const orderData = { orderId, customer: { name, phone, email, address }, items: cart, total: parseFloat(totalAmount), notes: document.getElementById('orderNotes').value, timestamp: new Date().toISOString(), tableNumber: 'Delivery', status: 'pending_payment', paymentStatus: 'pending' };
+            sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
+
+            try {
+                const submitBtn = document.querySelector('.submit-order');
+                submitBtn.textContent = 'Processing...'; submitBtn.disabled = true;
+
+                const response = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'createPayment', data: JSON.stringify(orderData) }) });
+                const data = await response.json();
+                
+                if (data.success && data.payment_url) {
+                    window.location.href = data.payment_url;
+                } else {
+                    alert('Error: ' + (data.error || 'Could not initialize'));
+                    submitBtn.textContent = 'Place Order'; submitBtn.disabled = false;
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+                document.querySelector('.submit-order').textContent = 'Place Order'; 
+                document.querySelector('.submit-order').disabled = false;
+            }
+        });
+
+        // ================= التحقق من العودة =================
+        const urlParams = new URLSearchParams(window.location.search);
+        const paytabsCartId = urlParams.get('cartId');
+        
+        if (paytabsCartId) {
+            const pendingOrderStr = sessionStorage.getItem('pendingOrder');
+            if (pendingOrderStr) {
+                const order = JSON.parse(pendingOrderStr);
+                if (order.orderId === paytabsCartId) {
+                    const tranRef = urlParams.get('tranRef');
+                    const paymentResult = urlParams.get('respCode');
+                    
+                    order.paymentId = tranRef || 'N/A';
+                    
+                    // نجاح حقيقي أو وهمي (Mock)
+                    if (paymentResult === '100' || tranRef) {
+                        order.paymentStatus = 'paid';
+                        order.status = 'new';
+                    } else {
+                        order.paymentStatus = 'failed';
+                        order.status = 'cancelled';
+                    }
+
+                    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'saveOrder', data: JSON.stringify(order) }) })
+                    .then(() => {
+                        sessionStorage.removeItem('pendingOrder');
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        
+                        if (order.paymentStatus === 'paid') {
+                            // رسالة توضح أن الاختبار نجح
+                            let msg = '✅ Test Successful!\nOrder ' + order.orderId + ' saved to Google Sheets.';
+                            if(tranRef === 'MOCK_PAYMENT') msg += '\n(Note: PayTabs was bypassed due to test limits)';
+                            alert(msg);
+                            cart = []; saveCartToLocal(); updateCartBadge();
+                        } else {
+                            alert('❌ Payment failed or was cancelled.');
+                        }
+                    });
+                }
+            }
+        }
+
+        loadCartFromLocal(); renderCategories(); renderProducts();
+    })();
+</script>
+</body>
+</html>
