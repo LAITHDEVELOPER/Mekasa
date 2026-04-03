@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* نفس الأنماط التي كانت موجودة - لم يتغير شيء */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #fefaf5; color: #2e241d; overflow-x: hidden; scroll-behavior: smooth; position: relative; }
         .gold-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
@@ -126,8 +127,8 @@
 
 <script>
     (function() {
-        // ⚠️ ضع رابط نشر Apps Script هنا
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyc6OtO9UqPO_Jt7fcOULg8no18pLg3iW0DANGkiHGppjmUjawjkSoMIDE0dahSqivx/exec';
+        // ========== ⚠️ ضع رابط Apps Script الصحيح هنا ==========
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtcqrGR8EQt7Gt6LLCXPgR4Nm14xQ5g4MstKmO1EX1pd3I1GntWER59strHL716kVC/exec'; // استبدل بالرابط الكامل
 
         const products = [
             { id: 'p1', name: 'Midnight Velvet Cake', desc: 'Rich red velvet with cream cheese frosting', price: 48.90, category: 'cakes', image: 'https://images.unsplash.com/photo-1586788224331-947f68671cf1?w=400&h=300&fit=crop' },
@@ -201,7 +202,6 @@
         closeCheckoutModal.addEventListener('click', () => checkoutModal.classList.remove('active'));
         window.addEventListener('click', (e) => { if (e.target === cartModal) cartModal.classList.remove('active'); if (e.target === checkoutModal) checkoutModal.classList.remove('active'); });
 
-        // ================= إرسال الطلب =================
         orderForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('customerName').value.trim();
@@ -213,20 +213,34 @@
             const totalAmount = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0).toFixed(2);
             const orderId = 'MEK-' + Date.now();
 
-            const orderData = { orderId, customer: { name, phone, email, address }, items: cart, total: parseFloat(totalAmount), notes: document.getElementById('orderNotes').value, timestamp: new Date().toISOString(), tableNumber: 'Delivery', status: 'pending_payment', paymentStatus: 'pending' };
+            const orderData = { 
+                orderId, 
+                customer: { name, phone, email, address }, 
+                items: cart, 
+                total: parseFloat(totalAmount), 
+                notes: document.getElementById('orderNotes').value, 
+                timestamp: new Date().toISOString(), 
+                tableNumber: 'Delivery',   // كل الطلبات توصيل
+                status: 'preparing',
+                paymentStatus: 'pending' 
+            };
             sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
 
             try {
                 const submitBtn = document.querySelector('.submit-order');
                 submitBtn.textContent = 'Processing...'; submitBtn.disabled = true;
 
-                const response = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'createPayment', data: JSON.stringify(orderData) }) });
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, 
+                    body: new URLSearchParams({ action: 'createPayment', data: JSON.stringify(orderData) }) 
+                });
                 const data = await response.json();
                 
                 if (data.success && data.payment_url) {
                     window.location.href = data.payment_url;
                 } else {
-                    alert('Error: ' + (data.error || 'Could not initialize'));
+                    alert('Error: ' + (data.error || 'Could not initialize payment'));
                     submitBtn.textContent = 'Place Order'; submitBtn.disabled = false;
                 }
             } catch (err) {
@@ -236,34 +250,27 @@
             }
         });
 
-                // ================= استقبال نتيجة الدفع =================
         const urlParams = new URLSearchParams(window.location.search);
         const paytabsCartId = urlParams.get('cartId');
-        
         if (paytabsCartId) {
             const pendingOrderStr = sessionStorage.getItem('pendingOrder');
             if (pendingOrderStr) {
                 const order = JSON.parse(pendingOrderStr);
                 if (order.orderId === paytabsCartId) {
                     const tranRef = urlParams.get('tranRef');
-                    
-                    // إرسال أمر تحديث حالة الدفع فقط (لأن الطلب محفوظ مسبقاً في المطبخ)
                     fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'confirmPayment', orderId: order.orderId, paymentId: tranRef || '' }) })
                     .then(() => {
                         sessionStorage.removeItem('pendingOrder');
-                        // تنظيف الرابط من باراميترات PayTabs
                         window.history.replaceState({}, document.title, window.location.pathname);
-                        
-                        alert('✅ Payment Successful! Your order ' + order.orderId + ' is now being prepared in the kitchen.');
+                        alert('✅ Payment Successful! Your order ' + order.orderId + ' is now being prepared.');
                         cart = []; 
                         saveCartToLocal();
                         updateCartBadge();
                     })
                     .catch(() => {
-                         // حتى لو فشل التحديث، لا مشكلة، الطلب وصل للمطبخ بالفعل
-                         alert('✅ Order received! It is being prepared.');
-                         window.history.replaceState({}, document.title, window.location.pathname);
-                         cart = []; saveCartToLocal(); updateCartBadge();
+                        alert('✅ Order received! It is being prepared.');
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        cart = []; saveCartToLocal(); updateCartBadge();
                     });
                 }
             }
